@@ -4,3 +4,5 @@ this is just a template so the students can be sure their api repository is avai
 ```
 docker-compose up
 ```
+
+**Josh Sivertson was here**
