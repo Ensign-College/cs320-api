@@ -1,36 +1,37 @@
 import express from 'express'
+import redis from 'redis'
 
 const app = express()
+
+
+const redisClient = redis.createClient({
+  host: 'localhost',
+  port: 6379
+});
+redisClient.connect()
+
+
 
 app.get('/', function (req, res) {
   res.send('Hello World')
 })
 
-app.get('/boxes', function (req, res) {
-  console.log('/boxes')
-  const boxes = [
-    {
+app.post('/boxes', function (req, res) {
+  console.log('POST /boxes')
+  const box = {
       'id': 1234,
       'name': 'box1',
       'color': 'red',
-    },
-    {
-      'id': 1235,
-      'name': 'box2',
-      'color': 'blue',
-    },
-    {
-      'id': 1236,
-      'name': 'box3',
-      'color': 'black',
-    },
-    {
-      'id': 1237,
-      'name': 'box4',
-      'color': 'green',
-    },
-  ]
-  res.send(boxes)
+    }
+  redisClient.set('box', JSON.stringify(box))
+  res.send(box)
+})
+
+app.get('/boxes', async function(req, res) {
+  console.log('GET /boxes')
+  let boxes = await redisClient.get('box')
+  console.log(boxes)
+  res.json(boxes)
 })
 
 app.listen(3000)
