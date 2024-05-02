@@ -16,22 +16,22 @@ app.get('/', function (req, res) {
   res.send('Hello World')
 })
 
-app.post('/boxes', function (req, res) {
-  console.log('POST /boxes')
-  const box = {
+app.post('/shoes', function (req, res) {
+  console.log('POST /shoes')
+  const shoe = {
       'id': 1234,
-      'name': 'box1',
+      'name': 'My sick red adidas',
       'color': 'red',
     }
-  redisClient.set('box', JSON.stringify(box))
-  res.send(box)
+  redisClient.set('shoe', JSON.stringify(shoe))
+  res.send(shoe)
 })
 
-app.get('/boxes', async function(req, res) {
-  console.log('GET /boxes')
-  let boxes = await redisClient.get('box')
-  console.log(boxes)
-  res.json(boxes)
+app.get('/shoes', async function(req, res) {
+  console.log('GET /shoes')
+  let shoes = await redisClient.get('shoe')
+  console.log(shoes)
+  res.json(shoes)
 })
 
 app.listen(3000)
