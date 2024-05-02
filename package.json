@@ -1,15 +1,19 @@
 {
+  "type": "module",
   "name": "boxes-api-bubbomb",
   "version": "1.0.0",
   "description": "this is just a template so the students can be sure their api repository is available to the teacher for grading, and also so they can run the redis-stack database even on windows.",
   "main": "main.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node main.js",
+    "dev": "nodemon main.js"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "express": "^4.19.2",
+    "nodemon": "^3.1.0",
     "redis": "^4.6.13"
   }
 }
