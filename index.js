@@ -1,27 +1,29 @@
+// Load modules
+// Express
 const express = require('express');
 const app = express();
 
-// Objects
-const Air = {
-    name: 'Nike Air Max 90',
-    price: 100
-};
+// Redis
+const redis = require('redis');
 
-const Jordan = {
-    name: 'Nike Air Jordan 1',
-    price: 150
-};
+// Create Redis Client
+const redisClient = redis.createClient({
+    host: 'localhost',
+    port: 6379
+});
 
-const Adidas = {
-    name: 'Adidas Superstar',
-    price: 80
-};
+// Connect to Redis
+redisClient.on('error', (err) => console.log('Redis Client Error', err));
+redisClient.connect()
 
-const shoes = [Air, Jordan, Adidas];
-const jsonShoes = JSON.stringify(shoes);
+// Get all shoes
+async function getShoes() {
+    const shoes = await redisClient.json.get('shoe');
+    return shoes;
+}
 
 app.get('/', (req, res) => {
-    res.send(jsonShoes);
+    res.send(getShoes());
 });
 
 app.listen(3000, () => {
