@@ -14,16 +14,30 @@ const redisClient = redis.createClient({
 
 // Connect to Redis
 redisClient.on('error', (err) => console.log('Redis Client Error', err));
-redisClient.connect()
+redisClient.connect();
 
-// Get all shoes
-async function getShoes() {
-    const shoes = await redisClient.json.get('shoe');
-    return shoes;
-}
+app.get('/', async (req, res) => {
+    res.send('Hello World!');
+});
 
-app.get('/', (req, res) => {
-    res.send(getShoes());
+app.get('/shoes', async (req, res) => {
+    const shoesGet = await redisClient.json.get('shoe:');
+    return res.send(shoesGet);
+});
+
+app.post('/shoes', async (req, res) => {
+    const shoe = {
+        id: 1,
+        name: 'Nike Air Max 90',
+        color: 'White',
+        price: 100
+    }
+    await redisClient.json.set('shoe:', '$', shoe, (err, reply) => {
+        if (err) {
+            console.log(err);
+        }
+    });
+    return res.send('Shoe added')
 });
 
 app.listen(3000, () => {
