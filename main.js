@@ -1,3 +1,4 @@
+import cors from 'cors'
 import express from 'express'
 import redis from 'redis'
 
@@ -10,7 +11,11 @@ const redisClient = redis.createClient({
 });
 redisClient.connect()
 
+var corsOptions = {
+  origin: 'http://localhost:3000'
+}
 
+app.use(cors(corsOptions))
 
 app.get('/', function (req, res) {
   res.send('Hello World')
@@ -34,4 +39,4 @@ app.get('/shoes', async function(req, res) {
   res.json(shoes)
 })
 
-app.listen(3000)
+app.listen(3001)
