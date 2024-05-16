@@ -52,10 +52,18 @@ app.get('/shoes/:id', async (req, res) => {
   res.send(shoes[0])
 })
 
-app.get('search', async (req, res) => {
+app.get('/search', async (req, res) => {
   let query = req.query
   console.log(query)
-  res.send('')
+  let jsonQueryString = '$.list[?('
+  Object.keys(query).forEach(key => {
+    console.log(key)
+    jsonQueryString += `@.${key}=~"(?i)${query[key]}"` 
+  })
+  jsonQueryString += ')]'
+  console.log(jsonQueryString)
+  let shoes = await redisClient.json.get('shoes', {path: jsonQueryString})
+  res.send(shoes)
 })
 
 app.listen(3001)
