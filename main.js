@@ -28,28 +28,34 @@ app.post('/shoes', async (req, res) => {
 
   let shoe = req.body
   try {
-    shoe.id = parseInt(await redisClient.json.arrLen('shoes','$'))+1
+    shoe.id = parseInt(await redisClient.json.arrLen('shoes','$.list'))+1
   } catch(e) {
     shoe.id = 1
   }
   console.log(shoe)
 
-  await redisClient.json.arrAppend('shoes','$', shoe)
+  await redisClient.json.arrAppend('shoes','$.list', shoe)
   res.json(shoe)
 })
 
 app.get('/shoes', async (req, res) => {
   console.log('GET /shoes')
-  let shoes = await redisClient.json.get('shoes',{path:'$'})
+  let shoes = await redisClient.json.get('shoes',{path:'$.list'})
   console.log(shoes)
   res.json(shoes[0])
 })
 
 app.get('/shoes/:id', async (req, res) => {
   let shoeId = Number(req.params.id)
-  let shoes = await redisClient.json.get('shoes', {path: `$`})
-  let shoe = shoes[0].find(({id}) => id === shoeId)
-  res.send(shoe)
+  let shoes = await redisClient.json.get('shoes', {path: `$.list[?(@.id==${shoeId})]`})
+  console.log(shoes)
+  res.send(shoes[0])
+})
+
+app.get('search', async (req, res) => {
+  let query = req.query
+  console.log(query)
+  res.send('')
 })
 
 app.listen(3001)
