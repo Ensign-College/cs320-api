@@ -15,26 +15,6 @@ const redisClient = redis.createClient({
 });
 redisClient.on('error', (err) => console.log('Redis Client Error', err));
 
-/*
-// Connect and initialize data
-redisClient.connect().then(() => {
-    // Delete the existing 'shoes' key if it has the wrong type
-    redisClient.del('shoes').then(() => {
-        console.log('Existing shoes key deleted');
-    }).catch(err => console.log('Error deleting shoes key', err));
-
-    // Hardcode shoe data
-    const initialShoeData = {
-        id: 1234,
-        name: 'My sick red adidas',
-        color: 'red'
-    };
-    // Store the hardcoded data in Redis using JSON.SET
-    redisClient.json.set('shoes', '.', initialShoeData)
-        .then(() => console.log('Initial shoe data set in Redis'))
-        .catch(err => console.log('Failed to set initial shoe data', err));
-});
-*/
 
 // Connect and initialize data
 redisClient.connect().then(async () => {
