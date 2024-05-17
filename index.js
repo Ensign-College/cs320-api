@@ -6,6 +6,10 @@ const app = express();
 // Redis
 const redis = require('redis');
 
+// CORS
+const cors = require('cors');
+app.use(cors());
+
 // Create Redis Client
 const redisClient = redis.createClient({
     host: 'localhost',
@@ -21,8 +25,13 @@ app.get('/', async (req, res) => {
 });
 
 app.get('/shoes', async (req, res) => {
-    const shoesGet = await redisClient.json.get('shoe:');
-    return res.send(shoesGet);
+    if(req.body.color) {
+        const shoesGet = await redisClient.json.get('shoe:', 'color', req.body.color);
+        return res.send(shoesGet);
+    } else {
+        const shoesGet = await redisClient.json.get('shoe:');
+        return res.send(shoesGet);
+    }
 });
 
 app.post('/shoes', async (req, res) => {
@@ -40,6 +49,8 @@ app.post('/shoes', async (req, res) => {
     return res.send('Shoe added')
 });
 
-app.listen(3000, () => {
-    console.log('Server is running on http://localhost:3000');
+const port = process.env.PORT || 3001;
+
+app.listen(port, () => {
+    console.log(`Server is running on http://localhost:${port}`);
 });
