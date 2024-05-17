@@ -1,25 +1,71 @@
+
+
 const express = require('express');
 const redis = require('redis');
 
-// Create Express
+// Create Express app
 const app = express();
 app.use(express.json()); 
 
-// Connect Redis
+
+// Connect to Redis
 const redisClient = redis.createClient({
     host: 'localhost',
     port: 6379
 });
 redisClient.on('error', (err) => console.log('Redis Client Error', err));
-redisClient.connect();
 
+/*
+// Connect and initialize data
+redisClient.connect().then(() => {
+    // Delete the existing 'shoes' key if it has the wrong type
+    redisClient.del('shoes').then(() => {
+        console.log('Existing shoes key deleted');
+    }).catch(err => console.log('Error deleting shoes key', err));
 
-// Endpoint para retornar "Hello World" en el root
+    // Hardcode shoe data
+    const initialShoeData = {
+        id: 1234,
+        name: 'My sick red adidas',
+        color: 'red'
+    };
+    // Store the hardcoded data in Redis using JSON.SET
+    redisClient.json.set('shoes', '.', initialShoeData)
+        .then(() => console.log('Initial shoe data set in Redis'))
+        .catch(err => console.log('Failed to set initial shoe data', err));
+});
+*/
+
+// Connect and initialize data
+redisClient.connect().then(async () => {
+    try {
+        // Optionally check if 'shoes' key exists and delete it if necessary
+        const keyExists = await redisClient.exists('shoes');
+        if (keyExists) {
+            await redisClient.del('shoes');
+            console.log('Existing shoes key deleted');
+        }
+
+        // Hardcode shoe data
+        const initialShoeData = {
+            id: 1234,
+            name: 'My sick red adidas',
+            color: 'red'
+        };
+        // Store the hardcoded data in Redis using JSON.SET
+        await redisClient.json.set('shoes', '.', initialShoeData);
+        console.log('Initial shoe data set in Redis');
+    } catch (err) {
+        console.log('Error initializing shoe data:', err);
+    }
+});
+
+// Endpoint to return "Hello World" on the root
 app.get('/', (req, res) => {
     res.send('Hello World');
 });
 
-// Endpoint get specific shoe
+// Endpoint to get specific shoe
 app.get('/shoes', async (req, res) => {
     try {
         const shoeData = await redisClient.json.get('shoes', {path: '.'});
@@ -29,14 +75,15 @@ app.get('/shoes', async (req, res) => {
     }
 });
 
-// Endpoint new shoe
+
 app.post('/shoes', async (req, res) => {
     const newShoe = req.body;
     try {
-        await redisClient.json.set(`shoes:${newShoe.id}`, '.', newShoe);
-        res.status(201).send('Shoe added');
+        // Here we use 'json.set' instead of 'set', updating the object with a unique key
+        await redisClient.json.set('shoes', '.', newShoe);
+        res.status(201).send('Shoe updated');
     } catch (error) {
-        res.status(500).json({error: 'Error adding shoe'});
+        res.status(500).json({error: 'Error updating shoe'});
     }
 });
 
