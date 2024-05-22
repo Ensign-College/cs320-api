@@ -36,7 +36,7 @@ app.post('/crocs', async (req, res) => {
     console.log('Shoe added');
 });
 
-//defining what to do when there is a get request on /shoes
+//defining what to do when there is a get request on /crocs
 app.get('/crocs', async (req, res) => {
     console.log('Received GET request to /shoes');
     const getShoe = await redisClient.get('shoe:1');
