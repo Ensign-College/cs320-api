@@ -23,15 +23,11 @@ app.get('/', (req, res) => {
     res.send('Hello World!');
 });
 
-croc = {
-    id: 1,
-    name: 'Croc 3000',
-    price: 101
-}
-
 //defining what to do when there is a post request on /shoes
 app.post('/crocs', async (req, res) => {
-    await redisClient.set('shoe:1', JSON.stringify(croc));
+    let id = req.body.id;
+    let croc = req.body;
+    await redisClient.set(JSON.stringify(id), JSON.stringify(croc));
     res.send('Shoe added');
     console.log('Shoe added');
 });
