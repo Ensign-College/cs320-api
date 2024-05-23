@@ -7,8 +7,11 @@ const app = express();
 const redis = require("redis");
 
 // CORS
+const options = {
+  origin: "http://localhost:3000",
+};
 const cors = require("cors");
-app.use(cors());
+app.use(cors(options));
 
 // Create Redis Client
 const redisClient = redis.createClient({
