@@ -28,7 +28,7 @@ app.post('/crocs', async (req, res) => {
     const crocsKeyPrefix = 'croc:';
     let id = req.body.id;
     let croc = req.body;
-    await redisClient.set(JSON.stringify(crocsKeyPrefix+id), JSON.stringify(croc));
+    await redisClient.set(crocsKeyPrefix + JSON.stringify(id), JSON.stringify(croc));
     res.send('Shoe added');
     console.log('Shoe added');
 });
