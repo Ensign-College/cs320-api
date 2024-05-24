@@ -40,21 +40,32 @@ app.get('/crocs', async (req, res) => {
     res.send(getShoe);
 });
 
-app.get('/search', (req, res) => {
-    console.log("made it to search");
+app.get('/search', async (req, res) => {
+    // Get the search term from the query string
     const searchTerm = req.query.searchTerm;
-    redisClient.keys('*', (err, keys) => {
-        console.log("made it to lower search");
-        const multi = redisClient.multi();
-        keys.forEach(key => multi.get(key));
-        multi.exec((err, replies) => {
-            const results = replies
-                .map(JSON.parse)
-                .filter(croc => croc.name.includes(searchTerm));
-            res.send(results);
-            console.log(results);
-        });
-    });
+
+    // Get all keys matching the pattern 'croc:*'
+    const keys = await redisClient.keys('croc:*');
+
+    // Filter keys that have a name containing the searchTerm
+    let relevantShoes = [];
+    for (let key of keys) {
+        const shoe = JSON.parse(await redisClient.get(key));
+        if (shoe.name.toLowerCase().includes(searchTerm.toLowerCase())) {
+            relevantShoes.push(key);
+        }
+    }
+
+    console.log("relevant Shoes: " + relevantShoes);
+
+    // Retrieve the full shoe data for the relevant shoes
+    const shoeDataPromises = relevantShoes.map(key => redisClient.mGet([key]));
+    const shoeData = (await Promise.all(shoeDataPromises)).flat();
+
+    console.log("Shoe Data: " + shoeData);
+
+    // Send the shoeData back to the client
+    res.send("Shoe Data: " + shoeData);
 });
 
 app.listen(port, () => {
