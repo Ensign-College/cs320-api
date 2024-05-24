@@ -25,7 +25,7 @@ app.get('/', (req, res) => {
 
 //defining what to do when there is a post request on /shoes
 app.post('/crocs', async (req, res) => {
-    const crocsKeyPrefix = 'shoe:';
+    const crocsKeyPrefix = 'croc:';
     let id = req.body.id;
     let croc = req.body;
     await redisClient.set(JSON.stringify(crocsKeyPrefix+id), JSON.stringify(croc));
