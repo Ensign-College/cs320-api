@@ -97,9 +97,13 @@ app.post("/shoes", async (req, res) => {
   const query = req.query;
   if (query.owner) {
     const owner = query.owner;
-    const result = JSON.stringify(decycle(req));
-    fs.writeFileSync("shoe.json", result);
-    return res.status(200).send("Shoe added to Redis");
+    const body = req.body;
+    if (body.brand && body.color) {
+      body.id = Math.floor(Math.random() * 1000);
+      await redisClient.rPush(owner, JSON.stringify(body));
+      return res.status(200).send("Shoe added to Redis");
+    }
+    return res.status(400).send("Brand and color are required");
   }
   return res.status(400).send("Owner is required");
 });
