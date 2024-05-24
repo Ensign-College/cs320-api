@@ -1,7 +1,7 @@
 const redis = require('redis');
 const express = require('express');
 const app = express();
-const port = 3001;
+const port = 3002;
 const cors = require('cors');
 
 const redisClient = redis.createClient({
@@ -25,9 +25,10 @@ app.get('/', (req, res) => {
 
 //defining what to do when there is a post request on /shoes
 app.post('/crocs', async (req, res) => {
+    const crocsKeyPrefix = 'shoe:';
     let id = req.body.id;
     let croc = req.body;
-    await redisClient.set(JSON.stringify(id), JSON.stringify(croc));
+    await redisClient.set(JSON.stringify(crocsKeyPrefix+id), JSON.stringify(croc));
     res.send('Shoe added');
     console.log('Shoe added');
 });
@@ -37,6 +38,23 @@ app.get('/crocs', async (req, res) => {
     console.log('Received GET request to /shoes');
     const getShoe = await redisClient.get('shoe:1');
     res.send(getShoe);
+});
+
+app.get('/search', (req, res) => {
+    console.log("made it to search");
+    const searchTerm = req.query.searchTerm;
+    redisClient.keys('*', (err, keys) => {
+        console.log("made it to lower search");
+        const multi = redisClient.multi();
+        keys.forEach(key => multi.get(key));
+        multi.exec((err, replies) => {
+            const results = replies
+                .map(JSON.parse)
+                .filter(croc => croc.name.includes(searchTerm));
+            res.send(results);
+            console.log(results);
+        });
+    });
 });
 
 app.listen(port, () => {
