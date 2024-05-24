@@ -3,6 +3,27 @@
 const express = require("express");
 const app = express();
 
+// Body Parser
+const bodyParser = require("body-parser");
+app.use(bodyParser.json());
+
+// File System
+const fs = require("fs");
+// Decycle function
+function decycle(obj, stack = []) {
+  if (!obj || typeof obj !== "object") return obj;
+
+  if (stack.includes(obj)) return null;
+
+  let s = stack.concat([obj]);
+
+  return Array.isArray(obj)
+    ? obj.map((x) => decycle(x, s))
+    : Object.fromEntries(
+        Object.entries(obj).map(([k, v]) => [k, decycle(v, s)])
+      );
+}
+
 // Redis
 const redis = require("redis");
 
@@ -58,7 +79,7 @@ app.get("/shoes", async (req, res) => {
   res.send(shoes);
 });
 
-app.post("/shoes", async (req, res) => {
+app.post("/dev-shoes", async (req, res) => {
   const owners = ["John", "Jane", "Doe"];
   const colors = ["red", "blue", "green"];
   const brands = ["nike", "adidas", "reebok"];
@@ -70,6 +91,22 @@ app.post("/shoes", async (req, res) => {
   const owner = owners[Math.floor(Math.random() * owners.length)];
   await redisClient.rPush(owner, JSON.stringify(shoe));
   return res.json("Shoe added to Redis");
+});
+
+app.post("/shoes", async (req, res) => {
+  const query = req.query;
+  if (query.owner) {
+    const owner = query.owner;
+    const result = JSON.stringify(decycle(req));
+    fs.writeFileSync("shoe.json", result);
+    return res.status(200).send("Shoe added to Redis");
+  }
+  return res.status(400).send("Owner is required");
+});
+
+app.get("/owners", async (req, res) => {
+  const owners = await redisClient.keys("*");
+  res.send(owners);
 });
 
 const port = process.env.PORT || 3001;
