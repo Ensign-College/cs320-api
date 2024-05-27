@@ -56,16 +56,23 @@ app.get('/search', async (req, res) => {
         }
     }
 
-    console.log("relevant Shoes: " + relevantShoes);
+    // console.log("relevant Shoes: " + relevantShoes); testing
 
     // Retrieve the full shoe data for the relevant shoes
-    const shoeDataPromises = relevantShoes.map(key => redisClient.mGet([key]));
-    const shoeData = (await Promise.all(shoeDataPromises)).flat();
+    let shoeData = [];
+    if (relevantShoes.length > 0) {
+        shoeData = await redisClient.mGet(relevantShoes);
+    }
 
-    console.log("Shoe Data: " + shoeData);
+    // console.log("shoeData: " + shoeData) testing
 
-    // Send the shoeData back to the client
-    res.send("Shoe Data: " + shoeData);
+    // Parse the shoe data into JavaScript objects
+    const shoeObjects = shoeData.map(JSON.parse);
+
+    // console.log(shoeObjects); testing
+
+    // Send the shoeData back to the client as a JSON object
+    res.json(shoeObjects);
 });
 
 app.listen(port, () => {
