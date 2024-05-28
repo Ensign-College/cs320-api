@@ -23,7 +23,7 @@ app.get('/', (req, res) => {
     res.send('Hello World!');
 });
 
-//defining what to do when there is a post request on /shoes
+//defining what to do when there is a post request on /crocs
 app.post('/crocs', async (req, res) => {
     const crocsKeyPrefix = 'croc:';
     let id = req.body.id;
