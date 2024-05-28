@@ -1,7 +1,7 @@
 const redis = require('redis');
 const express = require('express');
 const app = express();
-const port = 3001;
+const port = 3002;
 const cors = require('cors');
 
 const redisClient = redis.createClient({
@@ -23,24 +23,50 @@ app.get('/', (req, res) => {
     res.send('Hello World!');
 });
 
-croc = {
-    id: 1,
-    name: 'Croc 3000',
-    price: 101
-}
-
 //defining what to do when there is a post request on /shoes
 app.post('/crocs', async (req, res) => {
-    await redisClient.set('shoe:1', JSON.stringify(croc));
+    const crocsKeyPrefix = 'croc:';
+    let id = req.body.id;
+    let croc = req.body;
+    await redisClient.set(crocsKeyPrefix + JSON.stringify(id), JSON.stringify(croc));
     res.send('Shoe added');
     console.log('Shoe added');
 });
 
-//defining what to do when there is a get request on /shoes
+//defining what to do when there is a get request on /crocs
 app.get('/crocs', async (req, res) => {
     console.log('Received GET request to /shoes');
     const getShoe = await redisClient.get('shoe:1');
     res.send(getShoe);
+});
+
+app.get('/search', async (req, res) => {
+    // Get the search term from the query string
+    const searchTerm = req.query.searchTerm;
+
+    // Get all keys matching the pattern 'croc:*'
+    const keys = await redisClient.keys('croc:*');
+
+    // Filter keys that have a name containing the searchTerm
+    let relevantShoes = [];
+    for (let key of keys) {
+        const shoe = JSON.parse(await redisClient.get(key));
+        if (shoe.name.toLowerCase().includes(searchTerm.toLowerCase())) {
+            relevantShoes.push(key);
+        }
+    }
+
+    // Retrieve the full shoe data for the relevant shoes
+    let shoeData = [];
+    if (relevantShoes.length > 0) {
+        shoeData = await redisClient.mGet(relevantShoes);
+    }
+
+    // Parse the shoe data into JavaScript objects
+    const shoeObjects = shoeData.map(JSON.parse);
+
+    // Send the shoeData back to the client as a JSON object
+    res.json(shoeObjects);
 });
 
 app.listen(port, () => {
