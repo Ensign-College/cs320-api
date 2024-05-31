@@ -33,12 +33,22 @@ app.post('/crocs', async (req, res) => {
     console.log('Shoe added');
 });
 
-//defining what to do when there is a get request on /crocs
-app.get('/crocs', async (req, res) => {
-    console.log('Received GET request to /shoes');
-    const getShoe = await redisClient.get('shoe:1');
-    res.send(getShoe);
-});
+    // Get all keys matching the pattern 'croc:*'
+    app.get('/crocs', async (req, res) => {
+        const crocKeys = await redisClient.keys('croc:*');
+        const crocData = [];
+
+        console.log(crocKeys);
+        console.log("reached this point");
+
+        for (const key of crocKeys) { //Grabbing all the keys and pushing them to the crocData array
+            crocData.push(await redisClient.get(key));
+        }
+
+        console.log('Sending croc data to client' + crocData);
+
+        res.json(crocData);
+    });
 
 app.get('/search', async (req, res) => {
     // Get the search term from the query string
@@ -68,7 +78,6 @@ app.get('/search', async (req, res) => {
     // Send the shoeData back to the client as a JSON object
     res.json(shoeObjects);
 });
-
 app.listen(port, () => {
     console.log(`Example app listening on port http://localhost:${port}`);
 });
