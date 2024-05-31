@@ -38,9 +38,6 @@ app.post('/crocs', async (req, res) => {
         const crocKeys = await redisClient.keys('croc:*');
         const crocData = [];
 
-        console.log(crocKeys);
-        console.log("reached this point");
-
         for (const key of crocKeys) { //Grabbing all the keys and pushing them to the crocData array
             let data = await redisClient.get(key);
             crocData.push(JSON.parse(data));
