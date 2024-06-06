@@ -1,65 +1,56 @@
 const express = require('express')
 
-const {createClient} = require('redis');
-const REDIS_HOST = "127.0.0.1";
-const REDIS_PORT = 6379;
+const cors = require('cors')
+
+const redisClient = require('./redisClient')
+
+const {response} = require("express");
+
 const app = express();
 
-// Use Environment Variables for Redis Host & Port
-//const REDIS_HOST = process.env.REDIS_HOST;
-//const REDIS_PORT = process.env.REDIS_PORT;
-
-// Create Redis Client & Handle Connection Errors
-const redisClient = createClient({
-    host: REDIS_HOST,
-    port: REDIS_PORT
-})
-
-redisClient.connect().then(r => {
-    console.log("Redis client connected");
-});
-
-
-
-
-redisClient.on('error', function(err) {
-    console.error('Error connecting to Redis', err);
-})
-
-app.post('/shoes', (request, response) => {
-    redisClient.set('shoeCollection','red adidas')
-    response.send('Shoes added!')
-})
-
-// Refactor the Get Shoes Endpoint to Handle Errors & Return Result to Client
+app.use(cors());
+//
+//Refactor the Get Shoes Endpoint to Handle Errors & Return Result to Client
 app.get('/shoes', async (request, response) => {
-    let shoeData = ''
-    console.log('bagelMound')
-    shoeData = await redisClient.get('shoe2')
-    console.log(shoeData);
-    response.send(shoeData)
-
-
+    try {
+        console.log(await redisClient.keys('shoe:*'))
+        const shoeIds = await redisClient.keys('shoe:*')
+        const shoes = await Promise.all(shoeIds.map(async(id)=>{
+           const item = await redisClient.get(id)
+            return JSON.parse(item)
+        }))
+        response.send(shoes);
+    }catch(err) {
+        console.error(err);
+        response.status(500).send('Server Error');
+    }
 });
-// Refactor the Post Shoes Endpoint to Handle Errors in Redis Set
-//app.post('/shoes', (request, response) => {
-//  redisClient.set('shoeCollection', 'red adidas', (err) => {
-//    if (err) {
-//      response.status(500).send(err);
-//} else {
-//  response.send('Shoes added!');
-//}
-//});
 
+app.get('/shoes/:id', async (request, response) => {
+    try{
+        const id = `shoe:${request.params.id}`;
+        const item = await redisClient.get(id)
+        if (!item){
+            throw new Error('shoe not found')
+        }
+        response.send(JSON.parse(item))
+    }catch(err){
+        console.error(err);
+        response.status(500).send(err.message);
+    }
+})
 
-
-//});
-
+// app.post('/shoes', (request, response) => {
+//     redisClient.set('shoeCollection','red adidas')
+//     response.send('Shoes added!')
+// })
 
 
 app.get('/', (req, res) => {
     res.send('Hello World!')
 })
 
-app.listen(3000)
+app.listen(3000,()=>{
+    console.log('Server is running on port 3000');
+})
 
