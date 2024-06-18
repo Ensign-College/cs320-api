@@ -1,12 +1,18 @@
 
-
 const express = require('express');
 const redis = require('redis');
+const cors = require('cors');
 
+// Configuration 
+const options = {
+    origin: 'http://localhost:3000' /
+  };
+
+  
 // Create Express app
 const app = express();
 app.use(express.json()); 
-
+app.use(cors(options)); // frontend call backend
 
 // Connect to Redis
 const redisClient = redis.createClient({
@@ -48,9 +54,11 @@ app.get('/', (req, res) => {
 // Endpoint to get specific shoe
 app.get('/shoes', async (req, res) => {
     try {
-        const shoeData = await redisClient.json.get('shoes', {path: '.'});
-        res.json(shoeData);
-    } catch (error) {
+ //       const shoeData = await redisClient.json.get('shoes', {path: '.'});
+ //       res.json(shoeData);
+        let boxes = await redisClient.json.get('boxes', {path: '$'}); // Get  "boxes"
+        res.json(boxes[0]); 
+          } catch (error) {
         res.status(500).json({error: 'Error retrieving data'});
     }
 });
