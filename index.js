@@ -23,6 +23,20 @@ app.get('/', (req, res) => {
     res.send('Hello World!');
 });
 
+app.get('/croc/:id', async (req, res) => {
+    const crocId = req.params.id;
+    const crocKey = `croc:${crocId}`;    // Construct the key based on the redis  data structure
+
+    // Get the croc data from redis
+    let croc = await redisClient.get(crocKey);
+
+    // Change the string Data into a JSON object
+    let crocData = JSON.parse(croc);
+
+    // Send the croc data back to the client as a JSON object
+    res.json(crocData);
+});
+
 //defining what to do when there is a post request on /crocs
 app.post('/crocs', async (req, res) => {
     const crocsKeyPrefix = 'croc:';
