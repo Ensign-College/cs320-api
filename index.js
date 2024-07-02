@@ -35,11 +35,17 @@ redisClient.connect().then(async () => {
     const initialShoeData = {
       id: 1234,
       name: 'My sick red adidas',
-      color: 'red'
+      color: 'red',
+      owner: 'Initial Owner' // added owner field
     };
-    // Store the hardcoded data in Redis using JSON.SET
-    await redisClient.json.set('shoes', '.', initialShoeData);
-    console.log('Initial shoe data set in Redis');
+    // Store the hardcoded data in Redis using SET
+    await redisClient.set('shoes', JSON.stringify(initialShoeData), (err) => {
+      if (err) {
+        console.log('Error initializing shoe data:', err);
+      } else {
+        console.log('Initial shoe data set in Redis');
+      }
+    });
   } catch (err) {
     console.log('Error initializing shoe data:', err);
   }
@@ -53,21 +59,29 @@ app.get('/', (req, res) => {
 // Endpoint to get specific shoe
 app.get('/shoes', async (req, res) => {
   try {
-    // const shoeData = await redisClient.json.get('shoes', {path: '.'});
-    // res.json(shoeData);
-    let boxes = await redisClient.json.get('boxes', { path: '$' }); // Get  "boxes"
-    res.json(boxes[0]);
+    redisClient.get('shoes', (err, data) => {
+      if (err) {
+        res.status(500).json({ error: 'Error retrieving data' });
+      } else {
+        res.json(JSON.parse(data));
+      }
+    });
   } catch (error) {
     res.status(500).json({ error: 'Error retrieving data' });
   }
 });
 
+// Endpoint to save new shoe data
 app.post('/shoes', async (req, res) => {
   const newShoe = req.body;
   try {
-    // Here we use 'json.set' instead of 'set', updating the object with a unique key
-    await redisClient.json.set('shoes', '.', newShoe);
-    res.status(201).send('Shoe updated');
+    await redisClient.set(`shoe:${newShoe.id}`, JSON.stringify(newShoe), (err) => {
+      if (err) {
+        res.status(500).json({ error: 'Error updating shoe' });
+      } else {
+        res.status(201).send('Shoe updated');
+      }
+    });
   } catch (error) {
     res.status(500).json({ error: 'Error updating shoe' });
   }
