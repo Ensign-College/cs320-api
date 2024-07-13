@@ -1,7 +1,7 @@
 const redis = require('redis');
 const express = require('express');
 const app = express();
-const port = 3002;
+const port = 3003;
 const cors = require('cors');
 
 const REDIS_HOST = process.env.REDIS_HOST || 'localhost';
@@ -25,49 +25,66 @@ app.get('/', (req, res) => {
     res.send('Hello World!');
 });
 
-app.get('/croc/:id', async (req, res) => {
-    const crocId = req.params.id;
-    const crocKey = `croc:${crocId}`;    // Construct the key based on the redis  data structure
 
-    // Get the croc data from redis
-    let croc = await redisClient.get(crocKey);
+app.get('/shoe/:id', async (req, res) => {
+    const shoeId = req.params.id;
+    const shoeKey = `shoe:${shoeId}`;    // Construct the key based on the redis  data structure
+
+    // Get the shoe data from redis
+    let shoe = await redisClient.get(shoeKey);
 
     // Change the string Data into a JSON object
-    let crocData = JSON.parse(croc);
+    let shoeData = JSON.parse(shoe);
 
-    // Send the croc data back to the client as a JSON object
-    res.json(crocData);
+    // Send the shoe data back to the client as a JSON object
+    res.json(shoeData);
 });
 
-//defining what to do when there is a post request on /crocs
-app.post('/crocs', async (req, res) => {
-    const crocsKeyPrefix = 'croc:';
+//defining what to do when there is a post request on /shoes
+app.post('/shoes', async (req, res) => {
+    const shoesKeyPrefix = 'shoe:';
     let id = req.body.id;
-    let croc = req.body;
-    await redisClient.set(crocsKeyPrefix + JSON.stringify(id), JSON.stringify(croc));
+    let shoe = req.body;
+    await redisClient.set(shoesKeyPrefix + JSON.stringify(id), JSON.stringify(shoe));
     res.send('Shoe added');
     console.log('Shoe added');
 });
 
-    // Get all keys matching the pattern 'croc:*'
-    app.get('/crocs', async (req, res) => {
-        const crocKeys = await redisClient.keys('croc:*');
-        const crocData = [];
+// Get all keys matching the pattern 'shoe:*'
+app.get('/shoes', async (req, res) => {
+    const shoeKeys = await redisClient.keys('shoe:*');
+    const shoeData = [];
 
-        for (const key of crocKeys) { //Grabbing all the keys and pushing them to the crocData array
-            let data = await redisClient.get(key);
-            crocData.push(JSON.parse(data));
-        }
+    for (const key of shoeKeys) { //Grabbing all the keys and pushing them to the shoeData array
+        let data = await redisClient.get(key);
+        shoeData.push(JSON.parse(data));
+    }
 
-        res.json(crocData);
-    });
+    res.json(shoeData);
+});
+
+app.delete('/shoe/:id', async (req, res) => {
+    const shoeId = req.params.id;
+    const shoeKey = `shoe:${shoeId}`;    // Construct the key based on the redis data structure
+
+    // Delete the shoe data from redis
+    let result = await redisClient.del(shoeKey);
+
+    if (result === 1) {
+        // If the shoe was successfully deleted
+        res.json({ message: `Shoe with id ${shoeId} was deleted.` });
+    } else {
+        // If the shoe was not found in the database
+        res.status(404).json({ message: `Shoe with id ${shoeId} not found.` });
+    }
+});
 
 app.get('/search', async (req, res) => {
     // Get the search term from the query string
     const searchTerm = req.query.searchTerm;
 
-    // Get all keys matching the pattern 'croc:*'
-    const keys = await redisClient.keys('croc:*');
+    // Get all keys matching the pattern 'shoe:*'
+    const keys = await redisClient.keys('shoe:*');
 
     // Filter keys that have a name containing the searchTerm
     let relevantShoes = [];
@@ -90,6 +107,32 @@ app.get('/search', async (req, res) => {
     // Send the shoeData back to the client as a JSON object
     res.json(shoeObjects);
 });
+
+// PUT endpoint to update a shoe by ID
+app.put('/shoe/:id', async (req, res) => {
+    const shoeId = req.params.id;
+    const shoeKey = `shoe:${shoeId}`;
+
+    // Get the existing shoe data
+    let existingShoe = await redisClient.get(shoeKey);
+
+    if (existingShoe) {
+        // Parse the existing shoe data
+        existingShoe = JSON.parse(existingShoe);
+
+        // Update the existing shoe data with the new data from the request body
+        const updatedShoe = { ...existingShoe, ...req.body };
+
+        // Save the updated shoe data back to Redis
+        await redisClient.set(shoeKey, JSON.stringify(updatedShoe));
+
+        // Send the updated shoe data back to the client
+        res.json(updatedShoe);
+    } else {
+        res.status(404).json({ message: `Shoe with id ${shoeId} not found.` });
+    }
+});
+
 app.listen(port, () => {
     console.log(`Example app listening on port http://localhost:${port}`);
 });
