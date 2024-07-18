@@ -1,4 +1,4 @@
-// eduran
+// Erick Duran
 const express = require('express');
 const redis = require('redis');
 const cors = require('cors');
@@ -32,18 +32,6 @@ app.get('/', (req, res) => {
   res.send('Hello World');
 });
 
-// Endpoint to get specific shoe
-/*
-app.get('/shoes', async (req, res) => {
-  try {
-    const shoes = await redisClient.keys('session:*');
-    return res.status(200).json(shoes);
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({ error: 'Error retrieving data' });
-  }
-});
-*/
 
 // Endpoint to get specific shoe by ID
 app.get('/shoes/:id', async (req, res) => {
