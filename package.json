@@ -1,0 +1,25 @@
+{
+  "name": "boxes-api-erickwduranr",
+  "version": "1.0.0",
+  "description": "this is just a template so the students can be sure their api repository is available to the teacher for grading, and also so they can run the redis-stack database even on windows.",
+  "main": "helloWorld.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon index.js",
+      "start": "node helloWorld.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.20.2",
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "redis": "^4.6.14"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.4"
+  }
+
+
+
+}
